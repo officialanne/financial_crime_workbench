@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE Analyst ( 
 	AnalystID            INTEGER NOT NULL  PRIMARY KEY  ,
 	Name                 TEXT     ,

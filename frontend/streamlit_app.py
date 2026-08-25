@@ -1,9 +1,20 @@
+import os
+import sys
+from pathlib import Path
+
+# add project root to sys.path so the app imports work in Streamlit Cloud
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
+
 import pandas as pd
 import requests
 import streamlit as st
+from app.services import transaction_service
 
 # base URL for the FastAPI backend
-API_BASE_URL = "http://127.0.0.1:8000"
+API_BASE_URL = os.getenv("API_BASE_URL", "").rstrip("/")
 
 st.set_page_config(
     page_title="Transaction Explorer | AML Workbench",
@@ -22,13 +33,12 @@ country = st.sidebar.text_input("Origin Country Code (e.g., US, GB, AE)", max_ch
 party_id = st.sidebar.number_input("Party ID (Sender/Receiver)", min_value=0, value=0, step=1)
 
 # Build Query Parameters
-params = {"limit": limit}
-if min_amount > 0:
-    params["min_amount"] = min_amount
-if country:
-    params["country"] = country.upper()
-if party_id > 0:
-    params["party_id"] = party_id
+filter_kwargs = {
+    "limit": limit,
+    "min_amount": min_amount if min_amount > 0 else None,
+    "country": country.upper() if country else None,
+    "party_id": party_id if party_id > 0 else None,
+}
 
 
 # API Call Helper

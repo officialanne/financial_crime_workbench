@@ -42,14 +42,18 @@ def generate_sanctions(
         sanction_id = starting_id + offset
         sanction_ids.append(sanction_id)
 
-        entity_name = fake.company() if party_id is None else f"SANCTIONED-{fake.company()}"
+        entity_name = (
+            fake.company() if party_id is None else f"SANCTIONED-{fake.company()}"
+        )
         country_id = fake.random_element(country_ids)
         programme = fake.random_element(PROGRAMMES)
         source = fake.random_element(SOURCES)
 
         listed_date = fake.date_between(start_date="-4y", end_date="-60d")
-        delisted_date = None if fake.boolean(chance_of_getting_true=85) else fake.date_between(
-            start_date=listed_date, end_date="today"
+        delisted_date = (
+            None
+            if fake.boolean(chance_of_getting_true=85)
+            else fake.date_between(start_date=listed_date, end_date="today")
         )
 
         records.append(

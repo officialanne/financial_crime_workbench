@@ -1,10 +1,10 @@
 # a module to generate customers and customer risk rating histories
 
-from datetime import date, timedelta
-
 from faker_setup import fake
 
 RISK_RATINGS = [
+    ("LOW", 1),
+    ("LOW", 1),
     ("LOW", 1),
     ("MEDIUM", 2),
     ("HIGH", 3),
@@ -16,99 +16,90 @@ RISK_REASONS = [
     "Change in customer profile",
     "Increased international exposure",
     "Periodic risk review",
+    "Activity profile baseline confirmation",
 ]
 
 
-def generate_customers(connection, count, party_ids, starting_id=2001):
-    if count > len(party_ids):
-        raise ValueError("Cannot create more customers than available parties.")
+def generate_customers(
+    connection, customer_party_ids, employer_party_ids, starting_id=2001
+):
+    """Generates 10,000 customers with structured employment and salary profiles."""
+    customer_records = []
+    customer_profiles = []
 
-    selected_party_ids = fake.random_elements(
-        elements=party_ids,
-        length=count,
-        unique=True,
-    )
-
-    customer_ids = []
-
-    for customer_id, party_id in zip(
-        range(starting_id, starting_id + count),
-        selected_party_ids,
-    ):
+    for index, party_id in enumerate(customer_party_ids):
+        customer_id = starting_id + index
         occupation = fake.job()
-        open_date = fake.date_between(
-            start_date="-5y",
-            end_date="-30d",
-        )
+        open_date = fake.date_between(start_date="-5y", end_date="-30d")
+        risk_name, risk_number = fake.random_element(RISK_RATINGS)
+        employer_party_id = fake.random_element(employer_party_ids)
 
-        risk_name, _ = fake.random_element(RISK_RATINGS)
+        # Baseline monthly salary (between 1,500 and 15,000 in major currency units)
+        salary = fake.random_int(min=1800, max=9500)
 
-        connection.execute(
-            """
-            INSERT INTO Customer
-                (CustomerID, PartyID, Occupation, OpenDate, RiskRatingName)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+        customer_records.append(
             (
                 customer_id,
                 party_id,
                 occupation,
                 open_date,
                 risk_name,
-            ),
+            )
         )
 
-        customer_ids.append(customer_id)
+        customer_profiles.append(
+            {
+                "customer_id": customer_id,
+                "party_id": party_id,
+                "employer_party_id": employer_party_id,
+                "salary": salary,
+                "risk_name": risk_name,
+                "risk_number": risk_number,
+                "open_date": open_date,
+            }
+        )
 
-    return customer_ids
+    connection.executemany(
+        """
+        INSERT INTO Customer (CustomerID, PartyID, Occupation, OpenDate, RiskRatingName)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        customer_records,
+    )
+
+    return customer_profiles
 
 
 def generate_risk_rating_history(
     connection,
-    customer_ids,
+    customer_profiles,
     starting_id=3001,
 ):
-    risk_rating_ids = []
-    risk_rating_id = starting_id
+    records = []
+    current_id = starting_id
 
-    for customer_id in customer_ids:
-        rating_name, rating_number = fake.random_element(RISK_RATINGS)
-
-        effective_from = fake.date_between(
-            start_date="-5y",
-            end_date="-30d",
-        )
-
-        risk_reason = fake.random_element(RISK_REASONS)
-
-        connection.execute(
-            """
-            INSERT INTO CustomerRiskRatingHistory
-                (
-                    RiskRatingID,
-                    CustomerID,
-                    RiskRatingNumber,
-                    RiskRatingName,
-                    EffectiveFrom,
-                    EffectiveTo,
-                    Reason,
-                    CreatedAt
-                )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+    for profile in customer_profiles:
+        records.append(
             (
-                risk_rating_id,
-                customer_id,
-                rating_number,
-                rating_name,
-                effective_from,
+                current_id,
+                profile["customer_id"],
+                profile["risk_number"],
+                profile["risk_name"],
+                profile["open_date"],
                 None,
-                risk_reason,
-                effective_from,
-            ),
+                fake.random_element(RISK_REASONS),
+                profile["open_date"],
+            )
         )
+        current_id += 1
 
-        risk_rating_ids.append(risk_rating_id)
-        risk_rating_id += 1
+    connection.executemany(
+        """
+        INSERT INTO CustomerRiskRatingHistory (
+            RiskRatingID, CustomerID, RiskRatingNumber, RiskRatingName, EffectiveFrom, EffectiveTo, Reason, CreatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        records,
+    )
 
-    return risk_rating_ids
+    return list(range(starting_id, current_id))

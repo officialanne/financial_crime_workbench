@@ -9,40 +9,112 @@ PARTY_TYPES = [
 ]
 
 # a function to generate participants in a transaction
-def generate_parties(connection, count, country_ids, starting_id=1001):
-    party_ids = []
+def generate_parties(connection, customer_count,
+    employer_count,
+    merchant_count,
+    crypto_count,
+    bank_count,
+    foreign_count, country_ids, starting_id=1001):
+    
+    """Generates structured party pools by role and bulk inserts them."""
+    
+    party_records = []
+    party_catalog = {
+        "customer": [],
+        "employer": [],
+        "merchant": [],
+        "crypto": [],
+        "bank": [],
+        "foreign": [],
+    }
 
-    for party_id in range(starting_id, starting_id + count):
-        party_type = fake.random_element(PARTY_TYPES)
+    current_id = starting_id
 
-        match party_type:
-            case "INDIVIDUAL":
-                name = fake.name()
-            case "CUSTOMER":
-                name = fake.name()
-            case "BANK":
-                name = fake.bank()
-            case "BUSINESS":
-                name = fake.company()
-            case "CUSTOMER":
-                name = fake.name()
-
-        country_id = fake.random_element(country_ids)
-
-        connection.execute(
-            """
-            INSERT INTO Party
-                (PartyID, PartyType, Name, CountryID)
-            VALUES (?, ?, ?, ?)
-            """,
+    # 1. Customer Individual Parties
+    for _ in range(customer_count):
+        party_catalog["customer"].append(current_id)
+        party_records.append(
             (
-                party_id,
-                party_type,
-                name,
-                country_id,
-            ),
+                current_id,
+                "INDIVIDUAL",
+                fake.name(),
+                fake.random_element(country_ids),
+            )
         )
+        current_id += 1
 
-        party_ids.append(party_id)
+    # 2. Employer / Corporate Parties
+    for _ in range(employer_count):
+        party_catalog["employer"].append(current_id)
+        party_records.append(
+            (
+                current_id,
+                "BUSINESS",
+                f"{fake.company()} {fake.company_suffix()}",
+                fake.random_element(country_ids),
+            )
+        )
+        current_id += 1
 
-    return party_ids
+    # 3. Retail & Online Merchants
+    for _ in range(merchant_count):
+        party_catalog["merchant"].append(current_id)
+        party_records.append(
+            (
+                current_id,
+                "MERCHANT",
+                f"{fake.company()} Retail",
+                fake.random_element(country_ids),
+            )
+        )
+        current_id += 1
+
+    # 4. Crypto Exchanges / VASPs
+    crypto_suffixes = ["Exchange", "Crypto", "Digital Assets", "PayVASP", "Token Gateway"]
+    for _ in range(crypto_count):
+        party_catalog["crypto"].append(current_id)
+        party_records.append(
+            (
+                current_id,
+                "BUSINESS",
+                f"{fake.last_name()} {fake.random_element(crypto_suffixes)}",
+                fake.random_element(country_ids),
+            )
+        )
+        current_id += 1
+
+    # 5. Bank Cash Terminals / Branches
+    for _ in range(bank_count):
+        party_catalog["bank"].append(current_id)
+        party_records.append(
+            (
+                current_id,
+                "BANK",
+                f"{fake.bank()} Branch #{fake.random_int(100, 999)}",
+                fake.random_element(country_ids),
+            )
+        )
+        current_id += 1
+
+    # 6. Foreign / Offshore Counterparties
+    for _ in range(foreign_count):
+        party_catalog["foreign"].append(current_id)
+        party_records.append(
+            (
+                current_id,
+                "BUSINESS",
+                f"{fake.company()} International",
+                fake.random_element(country_ids),
+            )
+        )
+        current_id += 1
+
+    connection.executemany(
+        """
+        INSERT INTO Party (PartyID, PartyType, Name, CountryID)
+        VALUES (?, ?, ?, ?)
+        """,
+        party_records,
+    )
+
+    return party_catalog

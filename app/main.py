@@ -1,13 +1,20 @@
 from fastapi import FastAPI
+from app.routers import transactions
 
-app = FastAPI()
+app = FastAPI(
+    title="Financial Crime Workbench API",
+    description="Investigation workbench API for AML transactions, risk, and case management.",
+    version="1.0.0",
+)
+
+# register routers
+app.include_router(transactions.router)
 
 
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
+    return {
+        "status": "healthy",
+        "system": "Financial Crime Workbench API",
+        "docs_url": "/docs",
+    }

@@ -6,8 +6,8 @@ DATABASE_PATH = BASE_DIR / "database" / "aml.db"
 
 # number of records to generate
 # scale volumes
-COUNTRY_COUNT = 20
-CURRENCY_COUNT = 10
+COUNTRY_COUNT = 249
+CURRENCY_COUNT = 153
 ANALYST_COUNT = 25
 
 CUSTOMER_COUNT = 10000

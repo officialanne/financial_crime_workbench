@@ -126,7 +126,7 @@ def generate_case_activities(
                 fake.random_element(case_ids),
                 fake.random_element(analyst_ids),
                 fake.random_element(ACTIVITY_TYPES),
-                fake.sentence(nb_words=10),
+                None,
                 fake.date_between(start_date="-1y", end_date="today"),
             )
         )

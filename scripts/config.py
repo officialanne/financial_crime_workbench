@@ -2,7 +2,7 @@ from pathlib import Path
 
 # project directories
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = BASE_DIR/ "database" / "aml.db"
+DATABASE_PATH = BASE_DIR / "database" / "aml.db"
 
 # number of records to generate
 # scale volumes

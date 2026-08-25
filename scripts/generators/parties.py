@@ -8,16 +8,21 @@ PARTY_TYPES = [
     "CUSTOMER",
 ]
 
+
 # a function to generate participants in a transaction
-def generate_parties(connection, customer_count,
+def generate_parties(
+    connection,
+    customer_count,
     employer_count,
     merchant_count,
     crypto_count,
     bank_count,
-    foreign_count, country_ids, starting_id=1001):
-    
+    foreign_count,
+    country_ids,
+    starting_id=1001,
+):
     """Generates structured party pools by role and bulk inserts them."""
-    
+
     party_records = []
     party_catalog = {
         "customer": [],
@@ -70,7 +75,13 @@ def generate_parties(connection, customer_count,
         current_id += 1
 
     # 4. Crypto Exchanges / VASPs
-    crypto_suffixes = ["Exchange", "Crypto", "Digital Assets", "PayVASP", "Token Gateway"]
+    crypto_suffixes = [
+        "Exchange",
+        "Crypto",
+        "Digital Assets",
+        "PayVASP",
+        "Token Gateway",
+    ]
     for _ in range(crypto_count):
         party_catalog["crypto"].append(current_id)
         party_records.append(

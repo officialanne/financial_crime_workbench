@@ -46,17 +46,13 @@ TEAMS = [
     "Compliance",
 ]
 
-ACTIVE = [
-    "Y",
-    "Y",
-    "Y",
-    "N"
-]
+ACTIVE = ["Y", "Y", "Y", "N"]
+
 
 # generate countries
 def generate_countries(connection):
     country_ids = []
-    
+
     for country in COUNTRIES:
         connection.execute(
             """
@@ -66,9 +62,10 @@ def generate_countries(connection):
             """,
             country,
         )
-        
+
         country_ids.append(country[0])
     return country_ids
+
 
 # generate currencies
 def generate_currencies(connection):
@@ -88,16 +85,17 @@ def generate_currencies(connection):
 
     return currency_ids
 
+
 # generate analysts
 def generate_analysts(connection, count):
     analyst_ids = []
-    
+
     for analyst_id in range(1, count + 1):
         name = fake.name()
         email = fake.unique.email()
         team = fake.random_element(TEAMS)
         active = fake.random_element(ACTIVE)
-        
+
         connection.execute(
             """
             INSERT INTO Analyst
@@ -112,6 +110,6 @@ def generate_analysts(connection, count):
                 active,
             ),
         )
-        
+
         analyst_ids.append(analyst_id)
     return analyst_ids

@@ -50,7 +50,7 @@ def generate_transactions(
                 fake.random_element(merchant_parties),
                 fake.random_int(min=5, max=450),  # Everyday retail amount
                 fake.random_element(currency_ids),
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "CARD",
                 fake.random_element(country_ids),
             )
@@ -68,7 +68,7 @@ def generate_transactions(
                 None,
                 profile["salary"],
                 "EUR" if "EUR" in currency_ids else currency_ids[0],
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "TRANSFER",
                 fake.random_element(country_ids),
             )
@@ -90,7 +90,7 @@ def generate_transactions(
                 None,
                 fake.random_int(min=20, max=1200),
                 fake.random_element(currency_ids),
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "PAYMENT",
                 fake.random_element(country_ids),
             )
@@ -107,7 +107,7 @@ def generate_transactions(
                 None,
                 fake.random_int(min=50, max=1800),
                 fake.random_element(currency_ids),
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "TRANSFER",
                 fake.random_element(country_ids),
             )
@@ -124,7 +124,7 @@ def generate_transactions(
                 None,
                 fake.random_int(min=100, max=3500),
                 fake.random_element(currency_ids),
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "WIRE",
                 fake.random_element(country_ids),
             )
@@ -141,7 +141,7 @@ def generate_transactions(
                 fake.random_element(crypto_parties),
                 fake.random_int(min=50, max=2000),
                 fake.random_element(currency_ids),
-                fake.date_between(start_date="-1y", end_date="today"),
+                fake.date_between(start_date="-5y", end_date="today"),
                 "TRANSFER",
                 fake.random_element(country_ids),
             )

@@ -91,7 +91,8 @@ def list_transactions(
         rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
-# TODO: 
+
+# TODO:
 # services and then router
 # add customerID to above (through party id) as a separate one (just like by transaction ID)
 # add transaction date to above

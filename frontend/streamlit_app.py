@@ -22,15 +22,23 @@ st.set_page_config(
 )
 
 st.title("Transaction Explorer")
-st.caption("Investigate financial flows, suspicious amounts, and transaction counterparties.")
+st.caption(
+    "Investigate financial flows, suspicious amounts, and transaction counterparties."
+)
 
 # SIDEBAR: Query Filters
 st.sidebar.header("Filter Transactions")
 
-limit = st.sidebar.slider("Number of records", min_value=10, max_value=500, value=100, step=10)
+limit = st.sidebar.slider(
+    "Number of records", min_value=10, max_value=500, value=100, step=10
+)
 min_amount = st.sidebar.number_input("Minimum Amount", min_value=0, value=0, step=1000)
-country = st.sidebar.text_input("Origin Country Code (e.g., US, GB, AE)", max_chars=2).strip()
-party_id = st.sidebar.number_input("Party ID (Sender/Receiver)", min_value=0, value=0, step=1)
+country = st.sidebar.text_input(
+    "Origin Country Code (e.g., US, GB, AE)", max_chars=2
+).strip()
+party_id = st.sidebar.number_input(
+    "Party ID (Sender/Receiver)", min_value=0, value=0, step=1
+)
 
 # Build Query Parameters
 filter_params = {
@@ -40,22 +48,28 @@ filter_params = {
     "party_id": party_id if party_id > 0 else None,
 }
 
+
 # Unified Data Fetcher
 def get_transactions_data(filters):
     # If a remote API URL is specified, query it over HTTP
     if API_BASE_URL:
         try:
             params = {k: v for k, v in filters.items() if v is not None}
-            res = requests.get(f"{API_BASE_URL}/transactions/", params=params, timeout=5)
+            res = requests.get(
+                f"{API_BASE_URL}/transactions/", params=params, timeout=5
+            )
             if res.status_code == 200:
                 return res.json()
             st.error(f"API Error: {res.status_code}")
             return []
         except requests.exceptions.RequestException as e:
-            st.warning(f"Could not reach API at {API_BASE_URL}. Falling back to internal service.")
+            st.warning(
+                f"Could not reach API at {API_BASE_URL}. Falling back to internal service."
+            )
 
     # Standalone / Cloud fallback (queries SQLite via transaction_service)
     return transaction_service.list_transactions(**filters)
+
 
 def get_single_transaction(txn_id: int):
     if API_BASE_URL:
@@ -73,13 +87,13 @@ transactions_data = get_transactions_data(filter_params)
 
 if transactions_data:
     df = pd.DataFrame(transactions_data)
-    
+
     # Summary Cards
     col1, col2, col3 = st.columns(3)
     col1.metric("Transactions Displayed", len(df))
     col2.metric("Total Volume", f"{df['amount'].sum():,}")
     col3.metric("Max Amount", f"{df['amount'].max():,}")
-    
+
     # Data Table
     st.subheader("Transaction Records")
     st.dataframe(
@@ -97,15 +111,22 @@ if transactions_data:
             "origin_country_id": "Country",
         },
     )
-    
+
     # Transaction Detail Inspector
     st.divider()
     st.subheader("Inspect Single Transaction")
-    selected_id = st.number_input("Enter Transaction ID to Inspect", min_value=1, step=1, value=int(df.iloc[0]["transaction_id"]))
+    selected_id = st.number_input(
+        "Enter Transaction ID to Inspect",
+        min_value=1,
+        step=1,
+        value=int(df.iloc[0]["transaction_id"]),
+    )
 
     if st.button("Inspect Details"):
         try:
-            detail_res = requests.get(f"{API_BASE_URL}/transactions/{selected_id}", timeout=5)
+            detail_res = requests.get(
+                f"{API_BASE_URL}/transactions/{selected_id}", timeout=5
+            )
             if detail_res.status_code == 200:
                 txn = detail_res.json()
                 st.json(txn)

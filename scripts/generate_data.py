@@ -1,14 +1,20 @@
 # a module to populate the database
 
 from config import (
-    ANALYST_COUNT,
-    ALERT_COUNT,
     ACCOUNT_COUNT,
+    ALERT_COUNT,
+    ANALYST_COUNT,
+    BANK_BRANCH_COUNT,
+    CASE_ACTIVITY_COUNT,
     CASE_COUNT,
+    CRYPTO_COUNT,
     CUSTOMER_COUNT,
-    PARTY_COUNT,
+    EMPLOYER_COUNT,
+    FOREIGN_PARTY_COUNT,
+    MERCHANT_COUNT,
+    NORMAL_TRANSACTION_COUNT,
     SANCTION_COUNT,
-    TRANSACTION_COUNT,
+    SUSPICIOUS_TRANSACTION_COUNT,
 )
 
 from database import get_connection
@@ -61,124 +67,97 @@ def main():
     connection = get_connection()
 
     try:
-        print("Generating countries...")
+        print("Generating reference data (countries, currencies, analysts)...")
         country_ids = generate_countries(connection)
-
-        print("Generating currencies...")
         currency_ids = generate_currencies(connection)
+        analyst_ids = generate_analysts(connection, ANALYST_COUNT)
 
-        print("Generating analysts...")
-        analyst_ids = generate_analysts(
+        print("Generating structured party cohorts...")
+        party_catalog = generate_parties(
             connection,
-            ANALYST_COUNT,
+            customer_count=CUSTOMER_COUNT,
+            employer_count=EMPLOYER_COUNT,
+            merchant_count=MERCHANT_COUNT,
+            crypto_count=CRYPTO_COUNT,
+            bank_count=BANK_BRANCH_COUNT,
+            foreign_count=FOREIGN_PARTY_COUNT,
+            country_ids=country_ids,
         )
 
-        print("Generating parties...")
-        party_ids = generate_parties(
-            connection,
-            PARTY_COUNT,
-            country_ids,
-        )
-
-        print("Generating sanctions...")
+        print("Generating 100 sanctioned entities...")
+        sanctionable_pool = party_catalog["foreign"] + party_catalog["crypto"]
         sanction_ids = generate_sanctions(
             connection,
-            SANCTION_COUNT,
-            party_ids,
-            country_ids,
+            count=SANCTION_COUNT,
+            sanctionable_party_ids=sanctionable_pool,
+            country_ids=country_ids,
         )
 
-        print("Generating customers...")
-        customer_ids = generate_customers(
+        print("Generating 10,000 customers & risk history...")
+        customer_profiles = generate_customers(
             connection,
-            CUSTOMER_COUNT,
-            party_ids,
+            customer_party_ids=party_catalog["customer"],
+            employer_party_ids=party_catalog["employer"],
         )
+        generate_risk_rating_history(connection, customer_profiles)
 
-        print("Generating risk-rating history...")
-        generate_risk_rating_history(
-            connection,
-            customer_ids,
-        )
-
-        print("Generating accounts...")
+        print("Generating customer accounts...")
         generate_accounts(
             connection,
-            ACCOUNT_COUNT,
-            party_ids,
-            currency_ids,
+            customer_party_ids=party_catalog["customer"],
+            currency_ids=currency_ids,
         )
 
-        print("Generating transactions...")
-        transaction_ids = generate_transactions(
+        print("Generating 100,000 transactions (including 500 suspicious)...")
+        all_txn_ids, suspicious_txn_ids = generate_transactions(
             connection,
-            TRANSACTION_COUNT,
-            party_ids,
-            currency_ids,
-            country_ids,
+            customer_profiles=customer_profiles,
+            party_catalog=party_catalog,
+            sanction_party_ids=sanctionable_pool,
+            currency_ids=currency_ids,
+            country_ids=country_ids,
+            normal_count=NORMAL_TRANSACTION_COUNT,
+            suspicious_count=SUSPICIOUS_TRANSACTION_COUNT,
         )
 
-        print("Generating alerts...")
+        print("Generating alerts, cases, and summaries...")
         alert_ids = generate_alerts(
             connection,
-            ALERT_COUNT,
-            transaction_ids,
-            customer_ids,
+            count=ALERT_COUNT,
+            suspicious_txn_ids=suspicious_txn_ids,
+            all_txn_ids=all_txn_ids,
+            customer_profiles=customer_profiles,
         )
 
-        print("Generating cases...")
         case_ids = generate_cases(
             connection,
-            CASE_COUNT,
-            alert_ids,
-            analyst_ids,
+            count=CASE_COUNT,
+            alert_ids=alert_ids,
+            analyst_ids=analyst_ids,
         )
 
-        print("Generating investigation summaries...")
-        generate_investigation_summaries(
-            connection,
-            case_ids,
-        )
-
-        print("Generating case activities...")
+        generate_investigation_summaries(connection, case_ids)
         generate_case_activities(
             connection,
-            500,
-            case_ids,
-            analyst_ids,
+            count=CASE_ACTIVITY_COUNT,
+            case_ids=case_ids,
+            analyst_ids=analyst_ids,
         )
 
-        print("Generating case/customer relationships...")
-        generate_case_customers(
-            connection,
-            case_ids,
-            customer_ids,
-        )
-
-        print("Generating case/sanction relationships...")
-        generate_case_sanctions(
-            connection,
-            case_ids,
-            sanction_ids,
-        )
-
-        print("Generating case/transaction relationships...")
-        generate_case_transactions(
-            connection,
-            case_ids,
-            transaction_ids,
-        )
+        print("Generating case relationship mappings...")
+        customer_ids = [p["customer_id"] for p in customer_profiles]
+        generate_case_customers(connection, case_ids, customer_ids)
+        generate_case_sanctions(connection, case_ids, sanction_ids)
+        generate_case_transactions(connection, case_ids, suspicious_txn_ids)
 
         connection.commit()
 
-        print()
-        print("Data generation completed successfully.")
+        print("\nData generation completed successfully.")
 
     except Exception:
         connection.rollback()
 
-        print()
-        print("Data generation failed. Changes were rolled back.")
+        print("\nData generation failed. Changes were rolled back.")
 
         raise
 

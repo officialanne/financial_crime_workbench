@@ -33,28 +33,43 @@ country = st.sidebar.text_input("Origin Country Code (e.g., US, GB, AE)", max_ch
 party_id = st.sidebar.number_input("Party ID (Sender/Receiver)", min_value=0, value=0, step=1)
 
 # Build Query Parameters
-filter_kwargs = {
+filter_params = {
     "limit": limit,
     "min_amount": min_amount if min_amount > 0 else None,
     "country": country.upper() if country else None,
     "party_id": party_id if party_id > 0 else None,
 }
 
+# Unified Data Fetcher
+def get_transactions_data(filters):
+    # If a remote API URL is specified, query it over HTTP
+    if API_BASE_URL:
+        try:
+            params = {k: v for k, v in filters.items() if v is not None}
+            res = requests.get(f"{API_BASE_URL}/transactions/", params=params, timeout=5)
+            if res.status_code == 200:
+                return res.json()
+            st.error(f"API Error: {res.status_code}")
+            return []
+        except requests.exceptions.RequestException as e:
+            st.warning(f"Could not reach API at {API_BASE_URL}. Falling back to internal service.")
 
-# API Call Helper
-def fetch_transactions(query_params):
-    try:
-        response = requests.get(f"{API_BASE_URL}/transactions/", params=query_params, timeout=5)
-        if response.status_code == 200:
-            return response.json()
-        st.error(f"API Error ({response.status_code}): {response.text}")
-        return []
-    except requests.exceptions.ConnectionError:
-        st.error(f"Could not connect to FastAPI at '{API_BASE_URL}'. Make sure Uvicorn is running.")
-        return []
+    # Standalone / Cloud fallback (queries SQLite via transaction_service)
+    return transaction_service.list_transactions(**filters)
+
+def get_single_transaction(txn_id: int):
+    if API_BASE_URL:
+        try:
+            res = requests.get(f"{API_BASE_URL}/transactions/{txn_id}", timeout=5)
+            if res.status_code == 200:
+                return res.json()
+        except requests.exceptions.RequestException:
+            pass
+    return transaction_service.get_transaction_by_id(txn_id)
+
 
 # MAIN CONTENT: Display Transactions
-transactions_data = fetch_transactions(params)
+transactions_data = get_transactions_data(filter_params)
 
 if transactions_data:
     df = pd.DataFrame(transactions_data)

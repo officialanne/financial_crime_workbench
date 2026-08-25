@@ -46,47 +46,22 @@ def generate_cases(
     starting_id=6001,
 ):
     case_ids = []
+    case_records = []
 
-    for case_id in range(
-        starting_id,
-        starting_id + count,
-    ):
+    for index in range(count):
+        case_id = starting_id + index
         alert_id = fake.random_element(alert_ids)
         analyst_id = fake.random_element(analyst_ids)
-
         priority = fake.random_element(PRIORITIES)
         status = fake.random_element(CASE_STATUSES)
-
-        created_at = fake.date_between(
-            start_date="-1y",
-            end_date="today",
+        created_at = fake.date_between(start_date="-1y", end_date="today")
+        closed_at = (
+            fake.date_between(start_date=created_at, end_date="today")
+            if status == "CLOSED"
+            else None
         )
 
-        if status == "CLOSED":
-            closed_at = fake.date_between(
-                start_date=created_at,
-                end_date="today",
-            )
-        else:
-            closed_at = None
-
-        notes = fake.sentence(nb_words=12)
-
-        connection.execute(
-            """
-            INSERT INTO Cases
-                (
-                    CaseID,
-                    Priority,
-                    Status,
-                    AssignedAnalystID,
-                    CreatedAt,
-                    ClosedAt,
-                    Notes,
-                    AlertID
-                )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+        case_records.append(
             (
                 case_id,
                 priority,
@@ -94,116 +69,75 @@ def generate_cases(
                 analyst_id,
                 created_at,
                 closed_at,
-                notes,
+                fake.sentence(nb_words=12),
                 alert_id,
-            ),
+            )
         )
-
         case_ids.append(case_id)
+
+    connection.executemany(
+        """
+        INSERT INTO Cases (
+            CaseID, Priority, Status, AssignedAnalystID, CreatedAt, ClosedAt, Notes, AlertID
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        case_records,
+    )
 
     return case_ids
 
 
-def generate_investigation_summaries(
-    connection,
-    case_ids,
-    starting_id=7001,
-):
-    summary_ids = []
-
-    for summary_id, case_id in zip(
-        range(
-            starting_id,
-            starting_id + len(case_ids),
-        ),
-        case_ids,
-    ):
-        summary_text = fake.paragraph(nb_sentences=3)
-
-        generated_at = fake.date_between(
-            start_date="-1y",
-            end_date="today",
-        )
-
-        model_name = fake.random_element(MODELS)
-        prompt_version = fake.random_element(PROMPTS)
-
-        connection.execute(
-            """
-            INSERT INTO InvestigationSummary
-                (
-                    SummaryID,
-                    CaseID,
-                    SummaryText,
-                    GeneratedAt,
-                    ModelName,
-                    PromptVersion
-                )
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
+def generate_investigation_summaries(connection, case_ids, starting_id=7001):
+    records = []
+    for index, case_id in enumerate(case_ids):
+        summary_id = starting_id + index
+        records.append(
             (
                 summary_id,
                 case_id,
-                summary_text,
-                generated_at,
-                model_name,
-                prompt_version,
-            ),
+                fake.paragraph(nb_sentences=3),
+                fake.date_between(start_date="-1y", end_date="today"),
+                fake.random_element(MODELS),
+                fake.random_element(PROMPTS),
+            )
         )
 
-        summary_ids.append(summary_id)
+    connection.executemany(
+        """
+        INSERT INTO InvestigationSummary (
+            SummaryID, CaseID, SummaryText, GeneratedAt, ModelName, PromptVersion
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        records,
+    )
 
-    return summary_ids
+    return list(range(starting_id, starting_id + len(case_ids)))
 
 
 def generate_case_activities(
-    connection,
-    count,
-    case_ids,
-    analyst_ids,
-    starting_id=8001,
+    connection, count, case_ids, analyst_ids, starting_id=8001
 ):
-    activity_ids = []
-
-    for activity_id in range(
-        starting_id,
-        starting_id + count,
-    ):
-        case_id = fake.random_element(case_ids)
-        analyst_id = fake.random_element(analyst_ids)
-
-        activity_type = fake.random_element(ACTIVITY_TYPES)
-
-        description = fake.sentence(nb_words=10)
-
-        created_at = fake.date_between(
-            start_date="-1y",
-            end_date="today",
-        )
-
-        connection.execute(
-            """
-            INSERT INTO CaseActivity
-                (
-                    ActivityID,
-                    CaseID,
-                    AnalystID,
-                    ActivityType,
-                    Description,
-                    CreatedAt
-                )
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
+    records = []
+    for index in range(count):
+        activity_id = starting_id + index
+        records.append(
             (
                 activity_id,
-                case_id,
-                analyst_id,
-                activity_type,
-                description,
-                created_at,
-            ),
+                fake.random_element(case_ids),
+                fake.random_element(analyst_ids),
+                fake.random_element(ACTIVITY_TYPES),
+                fake.sentence(nb_words=10),
+                fake.date_between(start_date="-1y", end_date="today"),
+            )
         )
 
-        activity_ids.append(activity_id)
+    connection.executemany(
+        """
+        INSERT INTO CaseActivity (
+            ActivityID, CaseID, AnalystID, ActivityType, Description, CreatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        records,
+    )
 
-    return activity_ids
+    return list(range(starting_id, starting_id + count))

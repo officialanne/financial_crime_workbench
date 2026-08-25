@@ -7,6 +7,7 @@ TRANSACTION_TYPES = [
     "CARD",
 ]
 
+
 def generate_transactions(
     connection,
     customer_profiles,
@@ -35,7 +36,9 @@ def generate_transactions(
     transfer_count = 15000
     cash_count = 10000
     intl_count = 6500
-    crypto_count = normal_count - (shopping_count + salary_count + transfer_count + cash_count + intl_count)
+    crypto_count = normal_count - (
+        shopping_count + salary_count + transfer_count + cash_count + intl_count
+    )
 
     # Shopping / POS / E-commerce
     for _ in range(shopping_count):

@@ -16,52 +16,51 @@ from app.services import transaction_service
 API_BASE_URL = os.getenv("API_BASE_URL", "").rstrip("/")
 
 st.set_page_config(
-    page_title="Transaction Explorer | AML Workbench",
+    page_title="Transaction & Risk Explorer | AML Workbench",
     layout="wide",
 )
 
-st.title("Transaction Explorer")
+st.title("Transaction & Risk Intelligence Explorer")
 st.caption(
-    "Investigate financial flows, suspicious amounts, and transaction counterparties."
+    "Investigate financial movements, filter risk queues, and inspect explainable AML indicators."
 )
 
 # SIDEBAR: Query Filters
 st.sidebar.header("Filter & Search Transactions")
 
+# limit the number of records shown
 limit = st.sidebar.slider(
     "Records to Load", min_value=10, max_value=1000, value=100, step=10
 )
 
-# amount and country filters
-st.sidebar.subheader("Transaction Properties")
-min_amount = st.sidebar.number_input("Minimum Amount", min_value=0, value=0, step=1000)
-max_amount = st.sidebar.number_input("Maximum Amount", min_value=0, value=0, step=1000)
-country = st.sidebar.text_input(
-    "Origin Country Code (e.g., US, GB, AE)", max_chars=2
-).strip()
+# Risk filter
+risk_filter = st.sidebar.selectbox("Risk Category", ["ALL", "HIGH", "MEDIUM", "LOW"])
 
-# customer and party search
+
+# entity filters
+st.sidebar.subheader("Entity & Search")
 party_id = st.sidebar.number_input(
     "Party ID (Sender/Receiver)", min_value=0, value=0, step=1
 )
 customer_id = st.sidebar.number_input(
     "Customer ID (e.g. 2001)", min_value=0, value=0, step=1
 )
-
-# merchant search
 merchant_id = st.sidebar.number_input("Merchant ID", min_value=0, value=0, step=1)
 
-# currency filter
+# transaction filters
+st.sidebar.subheader("Transaction Filters")
+min_amount = st.sidebar.number_input("Minimum Amount", min_value=0, value=0, step=1000)
+max_amount = st.sidebar.number_input("Maximum Amount", min_value=0, value=0, step=1000)
+country = st.sidebar.text_input(
+    "Origin Country Code (e.g., US, GB, AE)", max_chars=2
+).strip()
 currency_id = st.sidebar.text_input(
     "Fiat or Crypto Currency Code (e.g., GBP, USD, BTC)", max_chars=3
 ).strip()
-
-
-# transaction type filter
 txn_type = st.sidebar.text_input("Type of Transaction (e.g., CARD, WIRE)")
 
 # date range filter
-st.sidebar.subheader("Date Range")
+st.sidebar.subheader("Date Filter")
 date_range = st.sidebar.date_input(
     "Select Date Range",
     value=(),
@@ -90,7 +89,7 @@ filter_params = {
     "txn_type": txn_type.upper() if txn_type else None,
     "start_date": start_date_str,
     "end_date": end_date_str,
-    "risk_category": None,
+    "risk_category": None if risk_filter == "ALL" else risk_filter,
 }
 
 
@@ -134,17 +133,23 @@ if transactions_data:
     df = pd.DataFrame(transactions_data)
 
     # Summary Cards
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Transactions Displayed", len(df))
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Transactions Found", len(df))
     col2.metric("Total Volume", f"{df['amount'].sum():,}")
-    col3.metric("Max Amount", f"{df['amount'].max():,}")
+    high_count = (df["risk_category"] == "HIGH").sum()
+    col3.metric("High Risk Items", high_count)
+    col4.metric("Avg Risk Score", f"{df['risk_score'].mean():.1f}/100")
 
     # Data Table
-    st.subheader("Transaction Records")
+    st.subheader("Transaction Ledger")
     st.dataframe(
         df,
         width="stretch",
         column_config={
+            "risk_score": st.column_config.ProgressColumn(
+                "Risk Score", format="%d", min_value=0, max_value=100
+            ),
+            "risk_category": "Level",
             "transaction_id": "Txn ID",
             "sender_party_id": "Sender ID",
             "receiver_party_id": "Receiver ID",
@@ -156,6 +161,8 @@ if transactions_data:
             "origin_country_id": "Country",
         },
         column_order=[
+            "risk_score",
+            "risk_category",
             "transaction_id",
             "amount",
             "currency_id",
@@ -169,26 +176,45 @@ if transactions_data:
 
     # Transaction Detail Inspector
     st.divider()
-    st.subheader("Inspect Single Transaction")
-    selected_id = st.number_input(
-        "Enter Transaction ID to Inspect",
-        min_value=1,
-        step=1,
-        value=int(df.iloc[0]["transaction_id"]),
-    )
+    st.subheader("Transaction Detail & AML Risk Inspector")
+    txn_id_options = df["transaction_id"].tolist()
+    selected_id = st.selectbox("Select a Transaction from the ledger to inspect:", txn_id_options)
+    
+    if selected_id:
+        detail = get_single_transaction(selected_id)
+        if detail:
+            cat = detail.get("risk_category", "LOW")
+            score = detail.get("risk_score", 0)
 
-    if st.button("Inspect Details"):
-        try:
-            detail_res = requests.get(
-                f"{API_BASE_URL}/transactions/{selected_id}", timeout=5
-            )
-            if detail_res.status_code == 200:
-                txn = detail_res.json()
-                st.json(txn)
-            else:
-                st.warning(f"Transaction ID {selected_id} not found.")
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error fetching transaction: {e}")
+            # Left column: Risk Badge & Reasons | Right column: Transaction Specs
+            col_risk, col_meta = st.columns([1, 1])
 
-    else:
-        st.info("No transactions found matching the current filters.")
+            with col_risk:
+                if cat == "HIGH":
+                    st.error(f"### HIGH RISK (Score: {score}/100)")
+                elif cat == "MEDIUM":
+                    st.warning(f"### MEDIUM RISK (Score: {score}/100)")
+                else:
+                    st.success(f"### LOW RISK (Score: {score}/100)")
+
+                rules = detail.get("triggered_rules", [])
+                if rules:
+                    st.markdown("**Triggered Risk Rules:**")
+                    for r in rules:
+                        st.markdown(f"- **{r['rule_name']}** (`+{r['points']} pts`): {r['reason']}")
+                else:
+                    st.info("No suspicious rules triggered. Activity consistent with normal profile.")
+
+            with col_meta:
+                st.markdown("#### Transaction Summary")
+                st.write(f"**Amount:** {detail.get('amount', 0):,} {detail.get('currency_id', '')}")
+                st.write(f"**Type:** {detail.get('transaction_type', 'N/A')}")
+                st.write(f"**Date:** {detail.get('transaction_date', 'N/A')}")
+                st.write(f"**Origin Country:** {detail.get('origin_country_id', 'N/A')}")
+                st.write(f"**Sender Party ID:** {detail.get('sender_party_id')}")
+                st.write(f"**Receiver Party ID:** {detail.get('receiver_party_id')}")
+
+            with st.expander("View Raw JSON Schema Data"):
+                st.json(detail)
+else:
+    st.info("No transactions found matching the current filters.")

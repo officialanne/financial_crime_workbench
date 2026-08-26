@@ -11,12 +11,16 @@ from app.services import analytics_service
 
 router = APIRouter(prefix="/dashboard", tags=["Analytics & Dashboard"])
 
+
 @router.get("/", response_model=DashboardSummaryResponse)
 def get_dashboard_summary(
-    country: Optional[str] = Query(None, min_length=2, max_length=2, description="Filter summary by country code")
+    country: Optional[str] = Query(
+        None, min_length=2, max_length=2, description="Filter summary by country code"
+    )
 ):
     """Retrive full executive dashboard summary with KPIs, trends, and risk metrics"""
     return analytics_service.get_dashboard_summary(country=country)
+
 
 @router.get("/operational", response_model=OperationalKPIs)
 def get_operational_metrics(country: Optional[str] = None):
@@ -40,5 +44,3 @@ def get_transaction_trends(country: Optional[str] = None, limit: int = 12):
 def get_top_countries(limit: int = 10):
     """Retrieve top transaction destination/origin countries."""
     return analytics_service.get_top_countries(limit=limit)
-
-

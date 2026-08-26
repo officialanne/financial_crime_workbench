@@ -2,13 +2,13 @@
 
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, Query
-from app.schemas.transaction import TransactionResponse
+from app.schemas.risk import TransactionWithRiskResponse
 from app.services import transaction_service
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 
 
-@router.get("/", response_model=List[TransactionResponse])
+@router.get("/", response_model=List[TransactionWithRiskResponse])
 def get_transactions(
     limit: int = Query(100, ge=1, le=1000, description="Max rows to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
@@ -30,6 +30,7 @@ def get_transactions(
     txn_type: Optional[str] = Query(None, description="Search by Transaction type"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    risk_category: Optional[str] = Query(None, description="Filter by HIGH, MEDIUM, or LOW"),
 ):
     """Retrieve transactions with optional filtering and pagination"""
 
@@ -46,11 +47,12 @@ def get_transactions(
         txn_type=txn_type,
         start_date=start_date,
         end_date=end_date,
+        risk_category=risk_category,
     )
 
 
 # get transactions by id
-@router.get("/{transaction_id}", response_model=TransactionResponse)
+@router.get("/{transaction_id}", response_model=TransactionWithRiskResponse)
 def get_transaction(transaction_id: int):
     """Fetch details of a single transaction by ID"""
 

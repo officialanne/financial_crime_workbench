@@ -20,7 +20,7 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("Transaction Risk Explorer")
+st.title("Transaction Explorer")
 st.caption(
     "Investigate financial flows, suspicious amounts, and transaction counterparties."
 )
@@ -145,9 +145,6 @@ if transactions_data:
         df,
         width="stretch",
         column_config={
-            "risk_score": st.column_config.ProgressColumn(
-                "Risk Score", format="%d", min_value=0, max_value=100
-            ),
             "transaction_id": "Txn ID",
             "sender_party_id": "Sender ID",
             "receiver_party_id": "Receiver ID",
@@ -159,14 +156,13 @@ if transactions_data:
             "origin_country_id": "Country",
         },
         column_order=[
-            "risk_score",
-            "risk_category",
             "transaction_id",
             "amount",
             "currency_id",
             "origin_country_id",
             "sender_party_id",
             "receiver_party_id",
+            "merchant_party_id",
             "transaction_date",
         ],
     )

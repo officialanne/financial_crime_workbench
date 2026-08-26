@@ -163,4 +163,4 @@ def list_transactions(
 
             risk_eval.append(txn)
 
-        return [dict(row) for row in rows]
+        return risk_eval

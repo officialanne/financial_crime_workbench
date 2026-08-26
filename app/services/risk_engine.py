@@ -47,7 +47,7 @@ class RiskResult:
     triggered_rules: List[Dict[str, Any]] = field(default_factory=list)
 
 
-def evaluate_transaction_risk(transaction: Dic[str, Any]) -> RiskResult:
+def evaluate_transaction_risk(transaction: Dict[str, Any]) -> RiskResult:
     """
     Evaluates a transaction dictionary against AML rules and returns a RiskResult.
     """
@@ -56,8 +56,8 @@ def evaluate_transaction_risk(transaction: Dic[str, Any]) -> RiskResult:
     triggered: List[TriggeredRule] = []
 
     amount = transaction.get("amount", 0)
-    country = (transaction.get("origin_country_id" or "")).upper()
-    currency = (transaction.get("currency_id" or "")).upper()
+    country = (transaction.get("origin_country_id") or "").upper()
+    currency = (transaction.get("currency_id") or "").upper()
 
     # Rule for structuring detection - just below the £10,000 threshold
     if 9000 <= amount <= 9999:
@@ -71,7 +71,7 @@ def evaluate_transaction_risk(transaction: Dic[str, Any]) -> RiskResult:
         )
 
     # Rule for high value transfers
-    # rule for £50,000
+    # rule for £50,000 and £10,000
     if amount >= 50000:
         triggered.append(
             TriggeredRule(
@@ -81,8 +81,6 @@ def evaluate_transaction_risk(transaction: Dic[str, Any]) -> RiskResult:
                 reason=f"Transfer of {amount:,} significantly exceeds typical baseline thresholds.",
             )
         )
-
-    # rule for £10,000
     elif amount >= 10000:
         triggered.append(
             TriggeredRule(

@@ -21,13 +21,17 @@ st.set_page_config(
 
 st.title("Transaction Risk Explorer")
 st.caption(
-    "Prioritize AML investigations using explainable, rule-based risk intelligence."
+    "Prioritise AML investigations using explainable, rule-based risk intelligence."
 )
 
 # -------------------------------------------------------------------
 # Sidebar: Query Filters
 # -------------------------------------------------------------------
 st.sidebar.header("Filters & Search")
+
+limit = st.sidebar.slider(
+    "Records to Load", min_value=10, max_value=1000, value=100, step=10
+)
 
 # Risk filter
 risk_filter = st.sidebar.selectbox("Risk Category", ["ALL", "HIGH", "MEDIUM", "LOW"])
@@ -63,10 +67,6 @@ if isinstance(date_range, tuple) or isinstance(date_range, list):
     elif len(date_range) == 2:
         start_date_str = str(date_range[0])
         end_date_str = str(date_range[1])
-
-limit = st.sidebar.slider(
-    "Records to Load", min_value=10, max_value=1000, value=100, step=10
-)
 
 filter_params = {
     "limit": limit,

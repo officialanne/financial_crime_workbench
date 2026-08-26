@@ -30,7 +30,9 @@ def get_transactions(
     txn_type: Optional[str] = Query(None, description="Search by Transaction type"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    risk_category: Optional[str] = Query(None, description="Filter by HIGH, MEDIUM, or LOW"),
+    risk_category: Optional[str] = Query(
+        None, description="Filter by HIGH, MEDIUM, or LOW"
+    ),
 ):
     """Retrieve transactions with optional filtering and pagination"""
 

@@ -164,7 +164,7 @@ if transactions_data:
         value=int(df.iloc[0]["transaction_id"]),
     )
 
-    if st.button("Analyze Risk Breakdown"):
+    if st.button("Analyse Risk Breakdown"):
         detail = get_transaction_risk_detail(selected_id)
         if detail:
             cat = detail.get("risk_category", "LOW")

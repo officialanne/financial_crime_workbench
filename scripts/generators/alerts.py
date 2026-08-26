@@ -18,7 +18,7 @@ def generate_alerts(
     customer_profiles,
     starting_id=4001,
 ):
-    """Prioritizes alerting on the 500 suspicious transactions, plus selected regular ones."""
+    """Prioritises alerting on the 500 suspicious transactions, plus selected regular ones."""
     records = []
     alert_ids = []
     current_id = starting_id

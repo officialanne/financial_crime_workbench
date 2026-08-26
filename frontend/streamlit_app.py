@@ -48,6 +48,11 @@ customer_id = st.sidebar.number_input(
     "Customer ID (e.g. 2001)", min_value=0, value=0, step=1
 )
 
+# currency filter
+currency_id = st.sidebar.text_input(
+    "Fiat or Crypto Currency Code (e.g., GBP, USD, BTC)", max_chars=3
+).strip()
+
 # date range filter
 st.sidebar.subheader("Date Range")
 date_range = st.sidebar.date_input(
@@ -73,6 +78,7 @@ filter_params = {
     "country": country.upper() if country else None,
     "party_id": party_id if party_id > 0 else None,
     "customer_id": customer_id if customer_id > 0 else None,
+    "currency_id": currency_id.upper() if currency_id else None,
     "start_date": start_date_str,
     "end_date": end_date_str,
 }

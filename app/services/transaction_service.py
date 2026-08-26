@@ -56,6 +56,7 @@ def list_transactions(
     customer_id: Optional[int] = None,
     start_date: Optional[Union[str, date]] = None,
     end_date: Optional[Union[str, date]] = None,
+    currency_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Filter and list transactions with pagination, party/customer search, and date range."""
 
@@ -102,6 +103,11 @@ def list_transactions(
             )
         """
         params.extend([customer_id, customer_id])
+    
+    # currency filter
+    if currency_id is not None:
+        query == " AND CurrencyID = ?"
+        params.append(currency_id.upper())
 
     # Date range filters (supports min date, max date, or in-between)
     if start_date is not None:
@@ -120,9 +126,6 @@ def list_transactions(
         return [dict(row) for row in rows]
 
 
-# get transaction by min date
-
-# get transaction by max date
+# get txn by currency
 
 # get transaction by customerID
-# add customerID to above (through party id) as a separate one (just like by transaction ID)

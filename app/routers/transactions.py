@@ -23,6 +23,9 @@ def get_transactions(
     ),
     party_id: Optional[int] = Query(None, description="Sender or receiver party ID"),
     customer_id: Optional[int] = Query(None, description="Search by Customer ID"),
+    currency_id: Optional[str] = Query(
+        None, min_length=3, max_length=3, description="3-letter currency code"
+    ),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
 ):
@@ -36,6 +39,7 @@ def get_transactions(
         country=country,
         party_id=party_id,
         customer_id=customer_id,
+        currency_id=currency_id,
         start_date=start_date,
         end_date=end_date,
     )

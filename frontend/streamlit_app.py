@@ -7,7 +7,6 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-
 import pandas as pd
 import requests
 import streamlit as st
@@ -30,22 +29,50 @@ st.caption(
 st.sidebar.header("Filter Transactions")
 
 limit = st.sidebar.slider(
-    "Number of records", min_value=10, max_value=500, value=100, step=10
+    "Number of records", min_value=10, max_value=1000, value=100, step=10
 )
+
+# amount and country filters
+st.sidebar.subheader("Transaction Properties")
 min_amount = st.sidebar.number_input("Minimum Amount", min_value=0, value=0, step=1000)
+max_amount = st.sidebar.number_input("Maximum Amount", min_value=0, value=0, step=1000)
 country = st.sidebar.text_input(
     "Origin Country Code (e.g., US, GB, AE)", max_chars=2
 ).strip()
+
+# customer and party search
+customer_id = st.sidebar.number_input("Customer ID (e.g. 2001)", min_value=0, value=0, step=1)
 party_id = st.sidebar.number_input(
     "Party ID (Sender/Receiver)", min_value=0, value=0, step=1
 )
+
+# date range filter
+st.sidebar.subheader("Date Range")
+date_range = st.sidebar.date_input(
+    "Select Date Range",
+    value=(),
+    help="Select a single date, or click two dates to select a range.",
+)
+
+start_date_str = None
+end_date_str = None
+if isinstance(date_range, tuple) or isinstance(date_range, list):
+    if len(date_range) == 1:
+        start_date_str = str(date_range[0])
+    elif len(date_range) == 2:
+        start_date_str = str(date_range[0])
+        end_date_str = str(date_range[1])
 
 # Build Query Parameters
 filter_params = {
     "limit": limit,
     "min_amount": min_amount if min_amount > 0 else None,
+    "max_amount": max_amount if max_amount > 0 else None,
     "country": country.upper() if country else None,
     "party_id": party_id if party_id > 0 else None,
+    "customer_id": customer_id if customer_id > 0 else None,
+    "start_date": start_date_str,
+    "end_date": end_date_str,
 }
 
 

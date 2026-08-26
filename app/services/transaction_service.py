@@ -2,12 +2,13 @@
 
 from pathlib import Path
 import sqlite3
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
+from datetime import date
 
 # Locate database/aml.db relative to this file
 DATABASE_PATH = Path(__file__).resolve().parent.parent.parent / "database" / "aml.db"
 
-
+# get the database connection
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DATABASE_PATH)
 
@@ -16,7 +17,7 @@ def get_db_connection() -> sqlite3.Connection:
 
     return conn
 
-
+# get a transaction by id
 def get_transaction_by_id(transaction_id: int) -> Optional[Dict[str, Any]]:
     """Retrieve a single transaction by ID."""
 
@@ -42,6 +43,7 @@ def get_transaction_by_id(transaction_id: int) -> Optional[Dict[str, Any]]:
         return dict(row) if row else None
 
 
+# list all transactions including filters
 def list_transactions(
     limit: int = 100,
     offset: int = 0,
@@ -49,8 +51,11 @@ def list_transactions(
     max_amount: Optional[int] = None,
     country: Optional[str] = None,
     party_id: Optional[int] = None,
+    customer_id: Optional[int] = None,
+    start_date: Optional[Union[str, date]] = None,
+    end_date: Optional[Union[str, date]] = None,
 ) -> List[Dict[str, Any]]:
-    """Filter and list transactions with pagination."""
+    """Filter and list transactions with pagination, party/customer search, and date range."""
 
     query = """
         SELECT
@@ -68,6 +73,7 @@ def list_transactions(
     """
     params: List[Any] = []
 
+    # amount filters
     if min_amount is not None:
         query += " AND Amount >= ?"
         params.append(min_amount)
@@ -76,14 +82,34 @@ def list_transactions(
         query += " AND Amount <= ?"
         params.append(max_amount)
 
+    # country filter
     if country is not None:
         query += " AND OriginCountryID = ?"
         params.append(country.upper())
 
+    # party ID filter
     if party_id is not None:
         query += " AND (SenderPartyID = ? OR ReceiverPartyID = ?)"
-        params.extend([party_id, party_id])
+       
+    # Customer ID filter (finds the party associated with this customer)
+    if customer_id is not None:
+        query += """
+            AND (
+                SenderPartyID IN (SELECT PartyID FROM Customer WHERE CustomerID = ?)
+                OR ReceiverPartyID IN (SELECT PartyID FROM Customer WHERE CustomerID = ?)
+            )
+        """
+        params.extend([customer_id, customer_id])
 
+    # Date range filters (supports min date, max date, or in-between)
+    if start_date is not None:
+        query += " AND TransactionDate >= ?"
+        params.append(str(start_date))
+
+    if end_date is not None:
+        query += " AND TransactionDate <= ?"
+        params.append(str(end_date))
+    
     query += " ORDER BY TransactionDate DESC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
 
@@ -91,8 +117,9 @@ def list_transactions(
         rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]
 
+# get transaction by min date
 
-# TODO:
-# services and then router
+# get transaction by max date
+
+# get transaction by customerID
 # add customerID to above (through party id) as a separate one (just like by transaction ID)
-# add transaction date to above

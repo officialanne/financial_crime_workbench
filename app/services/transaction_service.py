@@ -54,6 +54,7 @@ def list_transactions(
     country: Optional[str] = None,
     party_id: Optional[int] = None,
     customer_id: Optional[int] = None,
+    merchant_id: Optional[int] = None,
     currency_id: Optional[str] = None,
     txn_type: Optional[str] = None,
     start_date: Optional[Union[str, date]] = None,
@@ -105,6 +106,11 @@ def list_transactions(
             )
         """
         params.extend([customer_id, customer_id])
+    
+    # merchant id filter
+    if merchant_id is not None:
+        query += " AND MerchantPartyID = ?"
+        params.append(merchant_id)
     
     # currency filter
     if currency_id is not None:

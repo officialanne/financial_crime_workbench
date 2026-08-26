@@ -48,10 +48,16 @@ customer_id = st.sidebar.number_input(
     "Customer ID (e.g. 2001)", min_value=0, value=0, step=1
 )
 
+# merchant search
+merchant_id = st.sidebar.number_input(
+    "Merchant ID", min_value=0, value=0, step=1
+)
+
 # currency filter
 currency_id = st.sidebar.text_input(
     "Fiat or Crypto Currency Code (e.g., GBP, USD, BTC)", max_chars=3
 ).strip()
+
 
 # transaction type filter
 txn_type = st.sidebar.text_input(
@@ -83,6 +89,7 @@ filter_params = {
     "country": country.upper() if country else None,
     "party_id": party_id if party_id > 0 else None,
     "customer_id": customer_id if customer_id > 0 else None,
+    "merchant_id": merchant_id if merchant_id > 0 else None,
     "currency_id": currency_id.upper() if currency_id else None,
     "txn_type": txn_type.upper() if txn_type else None,
     "start_date": start_date_str,

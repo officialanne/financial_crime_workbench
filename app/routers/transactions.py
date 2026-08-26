@@ -26,6 +26,7 @@ def get_transactions(
     currency_id: Optional[str] = Query(
         None, min_length=3, max_length=3, description="3-letter currency code"
     ),
+    txn_type: Optional[str] = Query(None, description="Transaction type"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
 ):
@@ -40,6 +41,7 @@ def get_transactions(
         party_id=party_id,
         customer_id=customer_id,
         currency_id=currency_id,
+        txn_type=txn_type,
         start_date=start_date,
         end_date=end_date,
     )

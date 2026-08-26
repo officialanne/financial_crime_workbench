@@ -55,6 +55,7 @@ def list_transactions(
     party_id: Optional[int] = None,
     customer_id: Optional[int] = None,
     currency_id: Optional[str] = None,
+    txn_type: Optional[str] = None,
     start_date: Optional[Union[str, date]] = None,
     end_date: Optional[Union[str, date]] = None,
 ) -> List[Dict[str, Any]]:
@@ -109,6 +110,11 @@ def list_transactions(
     if currency_id is not None:
         query += " AND CurrencyID = ?"
         params.append(currency_id.upper())
+    
+    # transaction type filter
+    if txn_type is not None:
+        query += "AND TransactionType = ?"
+        params.append(txn_type.upper())
 
     # Date range filters (supports min date, max date, or in-between)
     if start_date is not None:

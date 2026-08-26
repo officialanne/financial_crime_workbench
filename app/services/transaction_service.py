@@ -93,6 +93,7 @@ def list_transactions(
     # party ID filter
     if party_id is not None:
         query += " AND (SenderPartyID = ? OR ReceiverPartyID = ?)"
+        params.extend([party_id, party_id])
 
     # Customer ID filter (finds the party associated with this customer)
     if customer_id is not None:
@@ -106,7 +107,7 @@ def list_transactions(
     
     # currency filter
     if currency_id is not None:
-        query == " AND CurrencyID = ?"
+        query += " AND CurrencyID = ?"
         params.append(currency_id.upper())
 
     # Date range filters (supports min date, max date, or in-between)

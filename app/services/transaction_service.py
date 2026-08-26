@@ -54,9 +54,9 @@ def list_transactions(
     country: Optional[str] = None,
     party_id: Optional[int] = None,
     customer_id: Optional[int] = None,
+    currency_id: Optional[str] = None,
     start_date: Optional[Union[str, date]] = None,
     end_date: Optional[Union[str, date]] = None,
-    currency_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Filter and list transactions with pagination, party/customer search, and date range."""
 

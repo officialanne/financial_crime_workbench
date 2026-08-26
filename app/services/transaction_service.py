@@ -5,6 +5,8 @@ import sqlite3
 from typing import Any, Dict, List, Optional, Union
 from datetime import date
 
+from app.services.risk_engine import evaluate_transaction_risk
+
 # Locate database/aml.db relative to this file
 DATABASE_PATH = Path(__file__).resolve().parent.parent.parent / "database" / "aml.db"
 
@@ -42,7 +44,17 @@ def get_transaction_by_id(transaction_id: int) -> Optional[Dict[str, Any]]:
             (transaction_id,),
         ).fetchone()
 
-        return dict(row) if row else None
+        if not row:
+            return None
+
+        # evalutate and store the risk scores for each transaction
+        data = dict(row)
+        risk = evaluate_transaction_risk(data)
+        data["risk_score"] = risk.score
+        data["risk_category"] = risk.category
+        data["reasons"] = risk.reasons
+        data["triggered_rules"] = risk.triggered_rules
+        return data
 
 
 # list all transactions including filters
@@ -59,8 +71,9 @@ def list_transactions(
     txn_type: Optional[str] = None,
     start_date: Optional[Union[str, date]] = None,
     end_date: Optional[Union[str, date]] = None,
+    risk_category: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Filter and list transactions with pagination, party/customer search, and date range."""
+    """Filter and list transactions with pagination and risk assessment."""
 
     query = """
         SELECT
@@ -106,17 +119,17 @@ def list_transactions(
             )
         """
         params.extend([customer_id, customer_id])
-    
+
     # merchant id filter
     if merchant_id is not None:
         query += " AND MerchantPartyID = ?"
         params.append(merchant_id)
-    
+
     # currency filter
     if currency_id is not None:
         query += " AND CurrencyID = ?"
         params.append(currency_id.upper())
-    
+
     # transaction type filter
     if txn_type is not None:
         query += "AND TransactionType = ?"
@@ -136,9 +149,18 @@ def list_transactions(
 
     with get_db_connection() as conn:
         rows = conn.execute(query, params).fetchall()
+        risk_eval = []
+        for row in rows:
+            # evaluate the risk for each row
+            txn = dict(row)
+            risk = evaluate_transaction_risk(txn)
+            txn["risk_score"] = risk.score
+            txn["risk_category"] = risk.category
+            txn["reasons"] = risk.reasons
+
+            if risk_category and (txn["risk_category"] != risk_category.upper()):
+                continue
+
+            risk_eval.append(txn)
+
         return [dict(row) for row in rows]
-
-
-# get txn by currency
-
-# get transaction by customerID

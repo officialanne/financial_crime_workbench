@@ -41,9 +41,11 @@ country = st.sidebar.text_input(
 ).strip()
 
 # customer and party search
-customer_id = st.sidebar.number_input("Customer ID (e.g. 2001)", min_value=0, value=0, step=1)
 party_id = st.sidebar.number_input(
     "Party ID (Sender/Receiver)", min_value=0, value=0, step=1
+)
+customer_id = st.sidebar.number_input(
+    "Customer ID (e.g. 2001)", min_value=0, value=0, step=1
 )
 
 # date range filter

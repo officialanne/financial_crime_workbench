@@ -8,6 +8,7 @@ from datetime import date
 # Locate database/aml.db relative to this file
 DATABASE_PATH = Path(__file__).resolve().parent.parent.parent / "database" / "aml.db"
 
+
 # get the database connection
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DATABASE_PATH)
@@ -16,6 +17,7 @@ def get_db_connection() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
 
     return conn
+
 
 # get a transaction by id
 def get_transaction_by_id(transaction_id: int) -> Optional[Dict[str, Any]]:
@@ -90,7 +92,7 @@ def list_transactions(
     # party ID filter
     if party_id is not None:
         query += " AND (SenderPartyID = ? OR ReceiverPartyID = ?)"
-       
+
     # Customer ID filter (finds the party associated with this customer)
     if customer_id is not None:
         query += """
@@ -109,13 +111,14 @@ def list_transactions(
     if end_date is not None:
         query += " AND TransactionDate <= ?"
         params.append(str(end_date))
-    
+
     query += " ORDER BY TransactionDate DESC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
 
     with get_db_connection() as conn:
         rows = conn.execute(query, params).fetchall()
         return [dict(row) for row in rows]
+
 
 # get transaction by min date
 

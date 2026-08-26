@@ -40,6 +40,7 @@ def get_transactions(
         end_date=end_date,
     )
 
+
 # get transactions by id
 @router.get("/{transaction_id}", response_model=TransactionResponse)
 def get_transaction(transaction_id: int):

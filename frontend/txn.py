@@ -32,9 +32,6 @@ limit = st.sidebar.slider(
     "Records to Load", min_value=10, max_value=1000, value=100, step=10
 )
 
-# risk filter
-risk_filter = st.sidebar.selectbox("Risk Category", ["ALL", "HIGH", "MEDIUM", "LOW"])
-
 # amount and country filters
 st.sidebar.subheader("Transaction Properties")
 min_amount = st.sidebar.number_input("Minimum Amount", min_value=0, value=0, step=1000)
@@ -83,7 +80,6 @@ if isinstance(date_range, tuple) or isinstance(date_range, list):
 # Build Query Parameters
 filter_params = {
     "limit": limit,
-    "risk_category": None if risk_filter == "ALL" else risk_filter,
     "min_amount": min_amount if min_amount > 0 else None,
     "max_amount": max_amount if max_amount > 0 else None,
     "country": country.upper() if country else None,
@@ -94,6 +90,7 @@ filter_params = {
     "txn_type": txn_type.upper() if txn_type else None,
     "start_date": start_date_str,
     "end_date": end_date_str,
+    "risk_category": None,
 }
 
 

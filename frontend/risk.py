@@ -70,7 +70,6 @@ limit = st.sidebar.slider(
 
 filter_params = {
     "limit": limit,
-    "risk_category": None if risk_filter == "ALL" else risk_filter,
     "min_amount": min_amount if min_amount > 0 else None,
     "max_amount": max_amount if max_amount > 0 else None,
     "country": country.upper() if country else None,
@@ -81,6 +80,7 @@ filter_params = {
     "txn_type": txn_type.upper() if txn_type else None,
     "start_date": start_date_str,
     "end_date": end_date_str,
+    "risk_category": None if risk_filter == "ALL" else risk_filter,
 }
 
 

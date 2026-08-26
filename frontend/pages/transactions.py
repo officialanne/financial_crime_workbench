@@ -178,8 +178,10 @@ if transactions_data:
     st.divider()
     st.subheader("Transaction Detail & AML Risk Inspector")
     txn_id_options = df["transaction_id"].tolist()
-    selected_id = st.selectbox("Select a Transaction from the ledger to inspect:", txn_id_options)
-    
+    selected_id = st.selectbox(
+        "Select a Transaction from the ledger to inspect:", txn_id_options
+    )
+
     if selected_id:
         detail = get_single_transaction(selected_id)
         if detail:
@@ -201,16 +203,24 @@ if transactions_data:
                 if rules:
                     st.markdown("**Triggered Risk Rules:**")
                     for r in rules:
-                        st.markdown(f"- **{r['rule_name']}** (`+{r['points']} pts`): {r['reason']}")
+                        st.markdown(
+                            f"- **{r['rule_name']}** (`+{r['points']} pts`): {r['reason']}"
+                        )
                 else:
-                    st.info("No suspicious rules triggered. Activity consistent with normal profile.")
+                    st.info(
+                        "No suspicious rules triggered. Activity consistent with normal profile."
+                    )
 
             with col_meta:
                 st.markdown("#### Transaction Summary")
-                st.write(f"**Amount:** {detail.get('amount', 0):,} {detail.get('currency_id', '')}")
+                st.write(
+                    f"**Amount:** {detail.get('amount', 0):,} {detail.get('currency_id', '')}"
+                )
                 st.write(f"**Type:** {detail.get('transaction_type', 'N/A')}")
                 st.write(f"**Date:** {detail.get('transaction_date', 'N/A')}")
-                st.write(f"**Origin Country:** {detail.get('origin_country_id', 'N/A')}")
+                st.write(
+                    f"**Origin Country:** {detail.get('origin_country_id', 'N/A')}"
+                )
                 st.write(f"**Sender Party ID:** {detail.get('sender_party_id')}")
                 st.write(f"**Receiver Party ID:** {detail.get('receiver_party_id')}")
 

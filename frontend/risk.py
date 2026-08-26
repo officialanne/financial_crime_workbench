@@ -19,7 +19,7 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🕵️ Transaction Risk Explorer")
+st.title("Transaction Risk Explorer")
 st.caption(
     "Prioritize AML investigations using explainable, rule-based risk intelligence."
 )
@@ -27,7 +27,7 @@ st.caption(
 # -------------------------------------------------------------------
 # Sidebar: Query Filters
 # -------------------------------------------------------------------
-st.sidebar.header("🔍 Filters & Search")
+st.sidebar.header("Filters & Search")
 
 # Risk filter
 risk_filter = st.sidebar.selectbox("Risk Category", ["ALL", "HIGH", "MEDIUM", "LOW"])
@@ -120,7 +120,7 @@ if transactions_data:
     c1.metric("Transactions", len(df))
     c2.metric("Total Volume", f"{df['amount'].sum():,}")
     high_count = (df["risk_category"] == "HIGH").sum()
-    c3.metric("High Risk Flags 🔴", high_count)
+    c3.metric("High Risk Flags", high_count)
     c4.metric("Average Risk Score", f"{df['risk_score'].mean():.1f}/100")
 
     # Data Table with Progress Bar for Risk Score
@@ -154,9 +154,7 @@ if transactions_data:
         ],
     )
 
-    # -------------------------------------------------------------------
     # Explainable Risk Inspector
-    # -------------------------------------------------------------------
     st.divider()
     st.subheader("Explainable Risk Assessment Inspector")
     selected_id = st.number_input(

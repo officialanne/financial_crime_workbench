@@ -146,7 +146,7 @@ if transactions_data:
     st.subheader("Transaction Records")
     st.dataframe(
         df,
-        use_container_width=True,
+        width="stretch",
         column_config={
             "transaction_id": "Txn ID",
             "sender_party_id": "Sender ID",

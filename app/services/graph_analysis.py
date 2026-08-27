@@ -10,11 +10,13 @@ from app.services.risk_engine import evaluate_transaction_risk
 
 DATABASE_PATH = Path(__file__).resolve().parents[2] / "database" / "aml.db"
 
+
 # get the database connection
 def get_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
 
 # create a network graph using the database
 def build_network_graph(
@@ -29,7 +31,7 @@ def build_network_graph(
     Constructs a directed NetworkX graph from transactions and computes
     network metrics (Degree Centrality, Betweenness, Connected Components).
     """
-    
+
     query = """
         SELECT
             t.TransactionID AS transaction_id,
@@ -68,10 +70,10 @@ def build_network_graph(
 
     query += " ORDER BY t.TransactionDate DESC LIMIT ?"
     params.append(limit)
-    
+
     with get_db_connection() as conn:
         txns = conn.execute(query, params).fetchall()
-        
+
         # if nothing is returned
         if not txns:
             return {
@@ -86,13 +88,12 @@ def build_network_graph(
                 },
             }
 
-        
         # collect unique party IDs involved in the transactions
         party_ids: Set[int] = set()
         for row in txns:
             party_ids.add(row["sender_party_id"])
             party_ids.add(row["receiver_party_id"])
-        
+
         # query party, customer, and sanction data for detailed nodes
         placeholders = ",".join("?" for _ in party_ids)
         party_query = f"""
@@ -112,10 +113,10 @@ def build_network_graph(
             r["PartyID"]: dict(r)
             for r in conn.execute(party_query, list(party_ids)).fetchall()
         }
-        
+
         # build networkx directed graph
         G = nx.DiGraph()
-        
+
         # create the nodes
         for pid in party_ids:
             p_meta = parties_data.get(pid, {})
@@ -127,37 +128,35 @@ def build_network_graph(
                 customer_id=p_meta.get("CustomerID"),
                 is_sanctioned=bool(p_meta.get("is_sanctioned", False)),
             )
-        
+
         # create the edges
         edge_list: List[Dict[str, Any]] = []
         for row in txns:
             t_dict = dict(row)
             risk = evaluate_transaction_risk(t_dict)
-            
+
             # apply risk filter if requested
             if risk_category and risk_category != risk_category.upper():
                 continue
-            
+
             # retriveing senders and receivers in each transaction
             u = t_dict["sender_party_id"]
             v = t_dict["receiver_party_id"]
-            
+
             G.add_edge(
-                u, 
-                v, 
-                transaction_id = t_dict["transaction_id"],
+                u,
+                v,
+                transaction_id=t_dict["transaction_id"],
                 amount=t_dict["amount"],
                 currency=t_dict["currency_id"],
                 date=t_dict["transaction_date"],
                 risk_score=risk.score,
             )
-        
+
         # Compute Network Centrality & Component Metrics
         betweenness = nx.betweenness_centrality(G) if len(G) > 0 else {}
         degrees = dict(G.degree())
-        comp_count = (
-            nx.number_weakly_connected_components(G) if len(G) > 0 else 0
-        )
+        comp_count = nx.number_weakly_connected_components(G) if len(G) > 0 else 0
         density = round(nx.density(G), 4) if len(G) > 0 else 0.0
 
         # format the nodes
@@ -175,17 +174,19 @@ def build_network_graph(
                     "is_sanctioned": attrs.get("is_sanctioned", False),
                     "degree": deg,
                     "betweenness_centrality": b_score,
-                    "risk_score": 80 if attrs.get("is_sanctioned") else int(b_score * 100),
+                    "risk_score": (
+                        80 if attrs.get("is_sanctioned") else int(b_score * 100)
+                    ),
                 }
             )
-        
+
         # rank top hubs / intermediaries (high betweenness & degree)
         sorted_hubs = sorted(
             nodes_list,
             key=lambda x: (x["betweenness_centrality"], x["degree"]),
             reverse=True,
         )[:5]
-        
+
         top_hubs = [
             {
                 "party_id": h["id"],
@@ -196,8 +197,8 @@ def build_network_graph(
             }
             for h in sorted_hubs
         ]
-        
-        # return the data including the network statistics
+
+        # return the graph response
         return {
             "nodes": nodes_list,
             "edges": edge_list,

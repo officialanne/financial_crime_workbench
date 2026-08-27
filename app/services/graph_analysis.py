@@ -136,7 +136,7 @@ def build_network_graph(
             risk = evaluate_transaction_risk(t_dict)
 
             # apply risk filter if requested
-            if risk_category and risk_category != risk_category.upper():
+            if risk_category and (risk_category != risk_category.upper()):
                 continue
 
             # retriveing senders and receivers in each transaction
@@ -151,6 +151,20 @@ def build_network_graph(
                 currency=t_dict["currency_id"],
                 date=t_dict["transaction_date"],
                 risk_score=risk.score,
+            )
+
+            # append the edges
+            edge_list.append(
+                {
+                    "source": u,
+                    "target": v,
+                    "transaction_id": t_dict["transaction_id"],
+                    "amount": t_dict["amount"],
+                    "currency_id": t_dict["currency_id"],
+                    "transaction_date": t_dict["transaction_date"],
+                    "transaction_type": t_dict.get("transaction_type"),
+                    "risk_score": risk.score,
+                }
             )
 
         # Compute Network Centrality & Component Metrics

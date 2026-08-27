@@ -182,7 +182,7 @@ with col_graph:
 
         # Generate and render HTML
         html_data = net.generate_html()
-        components.html(html_data, height=600, scrolling=False)
+        components.iframe(html_data, height=600, scrolling=False)
     else:
         st.info("No transaction relationships match current filter thresholds.")
 

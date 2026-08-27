@@ -1,5 +1,5 @@
-# Creates the interactive Streamlit network interface using PyVis. 
-# Nodes are colour-coded by party type (Individual, Business, Bank, Crypto, Sanctioned Entity) 
+# Creates the interactive Streamlit network interface using PyVis.
+# Nodes are colour-coded by party type (Individual, Business, Bank, Crypto, Sanctioned Entity)
 # and sized by Betweenness Centrality to visually highlight money mules and layering hubs
 import os
 import sys
@@ -95,7 +95,9 @@ col_graph, col_hubs = st.columns([3, 1])
 
 with col_graph:
     st.subheader("Interactive Entity Relationship Graph")
-    st.caption("Drag nodes, zoom to inspect connections, or hover over entities to view metadata.")
+    st.caption(
+        "Drag nodes, zoom to inspect connections, or hover over entities to view metadata."
+    )
 
     if nodes and edges:
         # Initialise PyVis network
@@ -118,11 +120,11 @@ with col_graph:
 
         # Node Colour Palette based on Entity Type
         TYPE_COLOURS = {
-            "INDIVIDUAL": "#3B82F6",    # Blue
-            "BUSINESS": "#8B5CF6",      # Purple
-            "MERCHANT": "#06B6D4",      # Cyan
-            "BANK": "#10B981",          # Green
-            "CRYPTO": "#F59E0B",        # Amber
+            "INDIVIDUAL": "#3B82F6",  # Blue
+            "BUSINESS": "#8B5CF6",  # Purple
+            "MERCHANT": "#06B6D4",  # Cyan
+            "BANK": "#10B981",  # Green
+            "CRYPTO": "#F59E0B",  # Amber
         }
 
         # Add Nodes
@@ -164,7 +166,9 @@ with col_graph:
         # Add Edges
         for e in edges:
             risk = e.get("risk_score", 0)
-            edge_colour = "#EF4444" if risk >= 60 else ("#F59E0B" if risk >= 30 else "#4B5563")
+            edge_colour = (
+                "#EF4444" if risk >= 60 else ("#F59E0B" if risk >= 30 else "#4B5563")
+            )
             width = 2.5 if risk >= 60 else 1.2
 
             net.add_edge(
@@ -184,14 +188,18 @@ with col_graph:
 
 with col_hubs:
     st.subheader("🎯 Bridge Hubs & Mules")
-    st.caption("Entities with high betweenness centrality acting as flow intermediaries.")
+    st.caption(
+        "Entities with high betweenness centrality acting as flow intermediaries."
+    )
 
     hubs = stats.get("top_hubs", [])
     if hubs:
         for idx, h in enumerate(hubs, start=1):
             st.markdown(f"**{idx}. {h['name']}**")
             st.write(f"- Type: `{h['party_type']}` | ID: `{h['party_id']}`")
-            st.write(f"- Connections: `{h['degree']}` | Bridge Centrality: `{h['betweenness_centrality']:.4f}`")
+            st.write(
+                f"- Connections: `{h['degree']}` | Bridge Centrality: `{h['betweenness_centrality']:.4f}`"
+            )
             st.divider()
     else:
         st.write("No prominent intermediary hubs detected.")
@@ -205,8 +213,3 @@ l3.markdown("🟢 **Bank Terminal**")
 l4.markdown("🟡 **Crypto / VASP**")
 l5.markdown("🔴 **Sanctioned Entity**")
 l6.markdown("➡️ **Red Edge = High Risk Txn**")
-
-
-
-
-

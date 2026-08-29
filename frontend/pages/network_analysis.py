@@ -107,6 +107,7 @@ with col_graph:
             directed=True,
             bgcolor="#111827",
             font_color="#F3F4F6",
+            cdn_resources="remote",  # loads vis-network JS from CDN
         )
 
         # Configure physics for readable spacing
@@ -182,7 +183,7 @@ with col_graph:
 
         # Generate and render HTML
         html_data = net.generate_html()
-        components.iframe(html_data, height=600, scrolling=False)
+        components.html(html_data, height=600, scrolling=False)
     else:
         st.info("No transaction relationships match current filter thresholds.")
 

@@ -135,7 +135,7 @@ def build_network_graph(
             t_dict = dict(row)
             risk = evaluate_transaction_risk(t_dict)
 
-            # apply risk filter if requested
+            # Compare the transaction's evaluated risk category to the filter parameter
             if risk_category and (risk_category != risk_category.upper()):
                 continue
 

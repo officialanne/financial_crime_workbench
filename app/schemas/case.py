@@ -1,4 +1,4 @@
-# Establishes Pydantic contracts for case creation payloads, lifecycle updates, activity notes, 
+# Establishes Pydantic contracts for case creation payloads, lifecycle updates, activity notes,
 # and full evidence dossiers returned by the API
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict

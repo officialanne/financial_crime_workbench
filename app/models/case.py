@@ -1,4 +1,4 @@
-# Defines the pure Python dataclass models for an investigation case 
+# Defines the pure Python dataclass models for an investigation case
 # and its associated activity log entries without any database or framework dependencies
 from dataclasses import dataclass, field
 from typing import List, Optional

@@ -6,10 +6,11 @@ dashboard_page = st.Page(
 )
 txn_risk_page = st.Page("pages/transactions.py", title="Transactions Risk Explorer")
 network_page = st.Page("pages/network_analysis.py", title="Network Analysis")
+investigation_page = st.Page("pages/investigations.py", title="Investigation Workspace")
 
 
 # Setup navigation
-pg = st.navigation([dashboard_page, txn_risk_page, network_page])
+pg = st.navigation([dashboard_page, txn_risk_page, network_page, investigation_page])
 
 # Run the selected page
 pg.run()

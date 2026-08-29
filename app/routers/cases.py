@@ -1,5 +1,5 @@
-# Exposes the complete Case Management REST API for querying case queues, 
-# creating cases, updating workflow transitions, appending investigation notes, 
+# Exposes the complete Case Management REST API for querying case queues,
+# creating cases, updating workflow transitions, appending investigation notes,
 # and attaching evidence records.
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, HTTPException, Query

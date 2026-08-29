@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import transactions, risk, dashboard, graph, cases
+from app.routers import transactions, risk, dashboard, graph, cases, sanctions
 
 app = FastAPI(
     title="Financial Crime Workbench API",
@@ -13,6 +13,7 @@ app.include_router(risk.router)
 app.include_router(dashboard.router)
 app.include_router(graph.router)
 app.include_router(cases.router)
+app.include_router(sanctions.router)
 
 
 @app.get("/")

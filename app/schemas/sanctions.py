@@ -1,13 +1,22 @@
-# Establishes Pydantic contracts for screening queries, confidence 
+# Establishes Pydantic contracts for screening queries, confidence
 # score results, and watchlist records returned over HTTP
 from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class SanctionScreenRequest(BaseModel):
-    query_name: str = Field(..., min_length=2, description="Name of individual or company to screen")
-    threshold: float = Field(0.70, ge=0.50, le=1.0, description="Fuzzy match sensitivity threshold (0.50 to 1.0)")
-    country_id: Optional[str] = Field(None, max_length=2, description="Optional 2-letter country code filter")
+    query_name: str = Field(
+        ..., min_length=2, description="Name of individual or company to screen"
+    )
+    threshold: float = Field(
+        0.70,
+        ge=0.50,
+        le=1.0,
+        description="Fuzzy match sensitivity threshold (0.50 to 1.0)",
+    )
+    country_id: Optional[str] = Field(
+        None, max_length=2, description="Optional 2-letter country code filter"
+    )
 
 
 class SanctionMatchResponse(BaseModel):

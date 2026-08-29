@@ -11,7 +11,9 @@ sanctions_page = st.Page("pages/sanctions_screening.py", title="Sanctions Screen
 
 
 # Setup navigation
-pg = st.navigation([dashboard_page, txn_risk_page, network_page, investigation_page, sanctions_page])
+pg = st.navigation(
+    [dashboard_page, txn_risk_page, network_page, investigation_page, sanctions_page]
+)
 
 # Run the selected page
 pg.run()

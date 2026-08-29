@@ -1,4 +1,4 @@
-# implements fuzzy and token-overlap string matching algorithms with confidence scoring, 
+# implements fuzzy and token-overlap string matching algorithms with confidence scoring,
 # customer profile screening, and watchlist querying in the database
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -143,9 +143,15 @@ def screen_customer_by_id(customer_id: int, threshold: float = 0.70) -> Dict[str
         ).fetchone()
 
         if not row:
-            return {"query_name": f"Customer #{customer_id}", "total_matches": 0, "matches": []}
+            return {
+                "query_name": f"Customer #{customer_id}",
+                "total_matches": 0,
+                "matches": [],
+            }
 
-        return screen_name(row["Name"], threshold=threshold, country_id=row["CountryID"])
+        return screen_name(
+            row["Name"], threshold=threshold, country_id=row["CountryID"]
+        )
 
 
 def list_sanctions(

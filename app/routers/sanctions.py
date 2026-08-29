@@ -27,10 +27,14 @@ def screen_entity(request: SanctionScreenRequest):
 @router.get("/customer/{customer_id}", response_model=SanctionScreenResponse)
 def screen_customer(
     customer_id: int,
-    threshold: float = Query(0.70, ge=0.50, le=1.0, description="Fuzzy match sensitivity threshold"),
+    threshold: float = Query(
+        0.70, ge=0.50, le=1.0, description="Fuzzy match sensitivity threshold"
+    ),
 ):
     """Screen a customer by Customer ID against sanctions lists."""
-    return sanctions_service.screen_customer_by_id(customer_id=customer_id, threshold=threshold)
+    return sanctions_service.screen_customer_by_id(
+        customer_id=customer_id, threshold=threshold
+    )
 
 
 @router.get("/", response_model=List[SanctionRecordResponse])
@@ -54,5 +58,10 @@ def get_sanctions_watchlist(
 @router.post("/link-case")
 def link_sanction_to_case(link: CaseSanctionLinkRequest):
     """Attach a sanction match result to an existing case."""
-    sanctions_service.link_sanction_to_case(case_id=link.case_id, sanction_id=link.sanction_id)
-    return {"status": "success", "message": f"Sanction #{link.sanction_id} attached to Case #{link.case_id}"}
+    sanctions_service.link_sanction_to_case(
+        case_id=link.case_id, sanction_id=link.sanction_id
+    )
+    return {
+        "status": "success",
+        "message": f"Sanction #{link.sanction_id} attached to Case #{link.case_id}",
+    }

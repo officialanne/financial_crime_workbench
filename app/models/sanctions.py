@@ -1,4 +1,4 @@
-# Defines the pure Python dataclasses for a watchlist record and 
+# Defines the pure Python dataclasses for a watchlist record and
 # a structured match result without framework dependencies
 from dataclasses import dataclass
 from typing import Optional

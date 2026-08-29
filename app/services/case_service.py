@@ -1,3 +1,6 @@
+# Provides database functions to create cases, update workflow states,
+# link transaction/customer evidence, append notes to CaseActivity,
+# and pull complete investigation dossiers.
 from datetime import date
 from pathlib import Path
 import sqlite3
